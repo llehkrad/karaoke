@@ -3,7 +3,6 @@ dist/
 build/
 .env
 *.local
-data/*.db
-data/*.sqlite
+data/
 .DS_Store
 Thumbs.db

@@ -6,13 +6,12 @@ import QueueList from "../components/QueueList.jsx";
 
 const API = import.meta.env.VITE_SERVER_URL || "http://localhost:3001";
 
-function getGuestName() {
-  let name = localStorage.getItem("karaoke_guest_name");
-  if (!name) {
-    name = window.prompt("What's your name? (shown next to your song picks)") || "Guest";
-    localStorage.setItem("karaoke_guest_name", name);
+function getStoredGuestName() {
+  try {
+    return localStorage.getItem("karaoke_guest_name");
+  } catch {
+    return null; // localStorage unavailable (private mode, sandboxed context, etc.)
   }
-  return name;
 }
 
 export default function GuestView() {
@@ -22,7 +21,26 @@ export default function GuestView() {
   const [pendingVideo, setPendingVideo] = useState(null);
   const [pitch, setPitch] = useState(0);
   const [connError, setConnError] = useState("");
-  const [guestName] = useState(getGuestName);
+  const [guestName, setGuestName] = useState(() => getStoredGuestName() || "Guest");
+
+  useEffect(() => {
+    // Only prompt if we don't already have a stored name. window.prompt() is a
+    // blocking dialog — some browser contexts (in-app webviews, sandboxed
+    // iframes) don't support it and throw, so this must never crash the page.
+    if (getStoredGuestName()) return;
+    let name = "Guest";
+    try {
+      name = window.prompt("What's your name? (shown next to your song picks)") || "Guest";
+    } catch {
+      // prompt() unsupported here — fall back to the default name.
+    }
+    try {
+      localStorage.setItem("karaoke_guest_name", name);
+    } catch {
+      // localStorage unavailable — name just won't persist across visits.
+    }
+    setGuestName(name);
+  }, []);
 
   useEffect(() => {
     let mounted = true;

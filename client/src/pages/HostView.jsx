@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import YouTube from "react-youtube";
 import { socket, emitAsync } from "../socket.js";
@@ -11,6 +11,10 @@ export default function HostView() {
 
   const [state, setState] = useState(null);
   const [connError, setConnError] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const playerRef = useRef(null);
+  const videoFrameRef = useRef(null);
 
   const joinUrl = `${window.location.origin}/join/${roomId}`;
 
@@ -39,6 +43,39 @@ export default function HostView() {
       socket.off("room_ended");
     };
   }, [roomId]);
+
+  // Live remote control from the admin panel (pause/resume/restart the
+  // actual player in place) -- a transient signal, not part of state_update.
+  useEffect(() => {
+    function handlePlaybackControl({ action }) {
+      const player = playerRef.current;
+      if (!player) return;
+      if (action === "pause") player.pauseVideo();
+      else if (action === "resume") player.playVideo();
+      else if (action === "restart") {
+        player.seekTo(0);
+        player.playVideo();
+      }
+    }
+    socket.on("playback_control", handlePlaybackControl);
+    return () => socket.off("playback_control", handlePlaybackControl);
+  }, []);
+
+  useEffect(() => {
+    function handleFullscreenChange() {
+      setIsFullscreen(document.fullscreenElement === videoFrameRef.current);
+    }
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      videoFrameRef.current?.requestFullscreen();
+    }
+  }
 
   const handleVideoEnd = useCallback(() => {
     if (!hostToken) return;
@@ -98,7 +135,7 @@ export default function HostView() {
     <div className="host-stage">
       {nowPlaying ? (
         <>
-          <div className="host-video-frame">
+          <div className="host-video-frame" ref={videoFrameRef}>
             <YouTube
               videoId={nowPlaying.video_id}
               opts={{
@@ -107,8 +144,18 @@ export default function HostView() {
                 playerVars: { autoplay: 1, controls: 1, rel: 0 },
               }}
               onEnd={handleVideoEnd}
+              onReady={(e) => {
+                playerRef.current = e.target;
+              }}
               style={{ width: "100%", height: "100%" }}
             />
+            <button
+              className="btn btn-secondary host-fullscreen-btn"
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? "⤡ Exit fullscreen" : "⛶ Fullscreen"}
+            </button>
           </div>
           <div className="row">
             <span className="pill pill-energy">
@@ -148,7 +195,7 @@ export default function HostView() {
           style={{ position: "fixed", top: 20, right: 20 }}
           onClick={handlePause}
         >
-          Pause room
+          Pause room (end for tonight)
         </button>
       )}
     </div>

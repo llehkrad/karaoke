@@ -25,6 +25,32 @@ review):
 - The "blank screen, no song queued" state when the queue empties
 - Full React frontend: Landing (create room), Host Display (QR/video/idle
   states), Guest View (search, pitch-picker bottom sheet, queue list)
+- Fullscreen button on the Host Display's video frame (uses the standard
+  Fullscreen API on `.host-video-frame`) — **could not be verified in a
+  live browser** (see below), but round-tripped fine via other tests.
+- **Admin control panel** (`/admin`, `/admin/:roomId`) — a single shared
+  `ADMIN_PASSWORD` (server/.env, required, no default) gates a dashboard
+  listing every room and a per-room control page that live-adjusts the
+  playing song's pitch, true in-place pause/resume, one-shot restart
+  (seek to 0), skip, and the full up-next playlist with shuffle/remove
+  (reuses `client/src/components/QueueList.jsx` and the existing
+  `shuffle_queue`/`remove_from_queue` events as-is). `rooms.js`'s
+  `verifyHost` now treats `ADMIN_PASSWORD` as a skeleton key valid for
+  any room's `hostToken` checks, so admin actions reuse every existing
+  host-gated socket event with no duplication, and a room's real
+  `host_token` is never exposed to the admin UI — a "cast to TV" link is
+  built client-side as `/host/:roomId?hostToken=<adminToken>` instead.
+  Live pitch/pause/resume/restart are two brand-new socket events
+  (`set_pitch`, `playback_control`); the latter is deliberately ephemeral
+  (relayed, not persisted to the DB) since it's a live remote-control
+  signal, not room state — a Host Display page reload loses the "paused"
+  state, same category of caveat as other reconnect edge cases already
+  in this app. **Fully integration-tested locally** (see below) —
+  login, room listing, live pitch sync to both the Host Display and the
+  playback pipeline, in-place pause verified by comparing frozen video
+  frames over time, resume verified to continue from the same position
+  (not restart), restart verified to seek to 0, skip/shuffle/remove all
+  confirmed against a real multi-tab session.
 
 **Built, not yet live-tested end-to-end:**
 
@@ -66,6 +92,13 @@ Python tool even has its own "Sync pitch from web app" polling feature
 that uses that same endpoint. Neither is used by or required for this app
 anymore now that `extension/` exists; they're just untouched, standalone,
 and still functional if ever needed.
+
+**Fullscreen caveat**: the sandboxed browser used to test this session
+rejects `requestFullscreen()` with `TypeError: Permissions check failed`
+— confirmed to be that sandbox's iframe embedding lacking a `fullscreen`
+Permissions-Policy allowance (`document.fullscreenEnabled` is `true`,
+the call/ref/logic are all correct), not a bug in the code. Needs a
+real top-level Chrome tab to actually verify the button works.
 
 ## Known simplifications (v1, worth revisiting)
 

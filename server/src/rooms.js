@@ -4,6 +4,11 @@ import { db } from "./db.js";
 // Session room codes: short, human-typeable if needed (e.g. read aloud), avoids ambiguous chars.
 const sessionCodeGen = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 6);
 
+// A single shared admin password (server/.env) acts as a skeleton key for
+// verifyHost, valid for every room. Lets /admin control any room without
+// ever needing to know that room's real per-room host_token.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
 function now() {
   return Date.now();
 }
@@ -52,8 +57,15 @@ export function getRoom(id) {
 }
 
 export function verifyHost(id, hostToken) {
+  if (!hostToken) return false;
   const room = getRoom(id);
-  return !!room && room.host_token === hostToken;
+  if (!room) return false;
+  if (room.host_token === hostToken) return true;
+  return Boolean(ADMIN_PASSWORD) && hostToken === ADMIN_PASSWORD;
+}
+
+export function listRooms() {
+  return db.prepare("SELECT * FROM rooms ORDER BY updated_at DESC").all();
 }
 
 export function pauseRoom(id) {

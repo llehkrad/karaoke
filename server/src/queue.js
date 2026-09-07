@@ -49,6 +49,22 @@ export function addToQueue(roomId, { videoId, title, thumbnail, channelTitle, pi
   return info.lastInsertRowid;
 }
 
+/**
+ * Live-adjusts the pitch of whatever's currently playing, without
+ * re-queuing it. The pitch-shifter bridge endpoint and the Chrome
+ * extension both read pitch_semitones fresh off nowPlaying on every
+ * poll/state_update, so this takes effect for them automatically.
+ */
+export function updateNowPlayingPitch(roomId, semitones) {
+  const room = db.prepare("SELECT * FROM rooms WHERE id = ?").get(roomId);
+  if (!room || !room.now_playing_id) return null;
+
+  const clamped = Math.max(-12, Math.min(12, Math.round(semitones)));
+  db.prepare("UPDATE queue_items SET pitch_semitones = ? WHERE id = ?").run(clamped, room.now_playing_id);
+
+  return getFullState(roomId);
+}
+
 export function removeFromQueue(roomId, itemId) {
   db.prepare("DELETE FROM queue_items WHERE id = ? AND room_id = ? AND status = 'queued'").run(itemId, roomId);
 }

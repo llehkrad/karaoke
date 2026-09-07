@@ -25,10 +25,13 @@ karaoke version, set a pitch, and queue it up.
   YouTube search results (proxied through the YouTube Data API), and
   broadcasts live queue/now-playing updates to every connected client via
   Socket.IO.
-- **`client/`** — React frontend (Vite). Two views from the same codebase:
+- **`client/`** — React frontend (Vite). Views from the same codebase:
   - `/host/:roomId` — the display screen (QR code when idle, YouTube embed
-    when a song is playing, auto-advances when it ends)
+    when a song is playing, auto-advances when it ends, fullscreen button)
   - `/join/:roomId` — the guest's phone view (search, pitch picker, queue)
+  - `/admin`, `/admin/:roomId` — password-gated control panel: see all
+    rooms, then live-adjust a room's pitch, pause/resume/restart/skip the
+    current song, and manage the full playlist (shuffle/remove)
 
 ## Room types
 
@@ -69,7 +72,8 @@ enable "YouTube Data API v3" on the project first).
 # 1. Backend
 cd server
 cp .env.example .env
-# edit .env and paste in your YOUTUBE_API_KEY
+# edit .env: paste in your YOUTUBE_API_KEY, and set ADMIN_PASSWORD to
+# anything if you want the /admin control panel (leave blank to disable it)
 npm install
 npm start          # runs on http://localhost:3001
 

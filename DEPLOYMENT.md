@@ -69,7 +69,13 @@ Fill in:
 PORT=3001
 CORS_ORIGIN=https://karaoke.yourdomain.com
 YOUTUBE_API_KEY=your_real_key_here
+ADMIN_PASSWORD=pick_a_strong_password
 ```
+
+`ADMIN_PASSWORD` gates the `/admin` control panel (list all rooms, live
+pitch/pause/resume/restart/skip, manage the playlist) — it's a master key
+valid for every room, so treat it like any other production secret. Leave
+it blank to disable `/admin` entirely.
 
 > **If you use the `extension/` Chrome extension (pitch sync) against this
 > deployment:** it opens its own Socket.IO connection from a

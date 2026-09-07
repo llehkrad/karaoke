@@ -1,6 +1,15 @@
 import { getRoom, verifyHost, pauseRoom, resumeRoom, endSessionRoom } from "./rooms.js";
-import { getFullState, addToQueue, removeFromQueue, shuffleQueue, advanceQueue } from "./queue.js";
+import {
+  getFullState,
+  addToQueue,
+  removeFromQueue,
+  shuffleQueue,
+  advanceQueue,
+  updateNowPlayingPitch,
+} from "./queue.js";
 import { searchYoutube } from "./youtube.js";
+
+const PLAYBACK_ACTIONS = new Set(["pause", "resume", "restart"]);
 
 function roomChannel(roomId) {
   return `room:${roomId}`;
@@ -110,9 +119,37 @@ export function registerSocketHandlers(io) {
       ack?.({ ok: true });
     });
 
+    // Host-only: live-adjust the currently playing song's pitch without
+    // re-queuing it. Broadcasts state_update, which is also what the
+    // pitch-shifter bridge endpoint and the Chrome extension read from.
+    socket.on("set_pitch", ({ roomId, hostToken, semitones }, ack) => {
+      if (!verifyHost(roomId, hostToken)) {
+        ack?.({ ok: false, error: "Invalid host token." });
+        return;
+      }
+      updateNowPlayingPitch(roomId, semitones);
+      broadcastState(io, roomId);
+      ack?.({ ok: true });
+    });
+
+    // Host-only: live remote control of the host display's YouTube player.
+    // Deliberately not persisted -- a live signal, not room state.
+    socket.on("playback_control", ({ roomId, hostToken, action }, ack) => {
+      if (!verifyHost(roomId, hostToken)) {
+        ack?.({ ok: false, error: "Invalid host token." });
+        return;
+      }
+      if (!PLAYBACK_ACTIONS.has(action)) {
+        ack?.({ ok: false, error: "Invalid playback action." });
+        return;
+      }
+      io.to(roomChannel(roomId)).emit("playback_control", { action });
+      ack?.({ ok: true });
+    });
+
     socket.on("end_session_room", ({ roomId, hostToken }, ack) => {
       const room = getRoom(roomId);
-      if (!room || room.host_token !== hostToken) {
+      if (!verifyHost(roomId, hostToken)) {
         ack?.({ ok: false, error: "Invalid host token." });
         return;
       }

@@ -38,20 +38,26 @@ karaoke version, set a pitch, and queue it up.
   keeps the room and song history intact in the database; resuming brings
   back the same link and remembers the last pitch used for each song.
 
-## Important: pitch-shifting is NOT done in this app
+## Pitch-shifting: the `extension/` Chrome extension
 
 YouTube's embedded player is a sandboxed cross-origin iframe — there's no
-legitimate way for a web page to reach into its audio and process it, and
-downloading/re-serving YouTube's audio to work around that would violate
-YouTube's Terms of Service.
+legitimate way for a web page's own script to reach into its audio and
+process it, and downloading/re-serving YouTube's audio to work around that
+would violate YouTube's Terms of Service.
 
-So this app only **stores and displays** the chosen pitch per song (via the
-`/api/rooms/:roomId/now-playing` endpoint). The actual real-time pitch
-shifting happens on the **host PC's system audio**, via the separate local
-pitch-shifter tool (see the `pitch changer` project) — it's designed to poll
-that endpoint and apply the pitch automatically. Wiring that polling loop
-into the existing pitch-shifter app is the next step, not yet done as of
-this build.
+Since all of that audio ultimately plays through one browser tab (the Host
+Display), **`extension/`** is a Chrome extension that captures just that
+tab's audio (`chrome.tabCapture`) and pitch-shifts it in real time
+in-browser — no virtual audio cable, no changing the PC's default playback
+device. It opens its own Socket.IO connection to this same server to learn
+the current song's chosen pitch the instant it changes. See
+`extension/README.md` for setup and usage.
+
+(There's also a separate, independent local Python tool — see the `pitch
+changer` project, a sibling folder outside this repo — that pitch-shifts a
+PC's *entire* system audio via a virtual audio cable. It predates the
+extension and isn't used by or required for this app; it's kept around as
+its own standalone tool.)
 
 ## Running locally
 

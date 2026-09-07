@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Karaoke Pitch Sync",
+  "version": "1.0.0",
+  "description": "Captures the Host Display tab's audio and pitch-shifts it in real time to match the currently playing song's chosen key — no VB-Cable or virtual audio device required.",
+  "minimum_chrome_version": "116",
+  "permissions": ["tabCapture", "offscreen", "storage", "activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Karaoke Pitch Sync"
+  }
+}

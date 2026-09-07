@@ -1,0 +1,15 @@
+{
+  "name": "karaoke-pitch-sync-extension",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome extension: captures the Host Display tab's audio and applies real-time pitch shifting synced to the karaoke web app's current song.",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "@soundtouchjs/audio-worklet": "^1.0.2",
+    "esbuild": "^0.24.0",
+    "socket.io-client": "^4.7.5"
+  }
+}

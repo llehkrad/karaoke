@@ -28,30 +28,44 @@ review):
 
 **Built, not yet live-tested end-to-end:**
 
-Real audio pitch-shifting. YouTube's embed is a sandboxed cross-origin
-iframe — a web page has no legitimate way to reach into and process its
-audio, and downloading/re-serving YouTube's audio to work around that would
-violate YouTube's Terms of Service. So instead:
+Real audio pitch-shifting, via **`extension/`** — a Chrome extension, not
+part of `client`/`server`. YouTube's embed is a sandboxed cross-origin
+iframe — a web page's own script has no legitimate way to reach into and
+process its audio, and downloading/re-serving YouTube's audio to work
+around that would violate YouTube's Terms of Service. But all of that
+audio does play through exactly one browser tab (the Host Display), so:
 
-- This app only stores/displays the chosen pitch per song
-- It exposes `GET /api/rooms/:roomId/now-playing` (see `server/src/routes.js`)
-  returning `{ playing, videoId, title, pitchSemitones }` for whatever's
-  currently playing
-- There's a **separate local Python tool** (a real-time system-audio pitch
-  shifter for Windows — see the `pitch changer` project/folder, not part of
-  this repo) that processes whatever sound the host PC outputs, using
-  VB-Cable (virtual audio device) + `pylibrb` (Rubber Band Library bindings)
-  for genuine real-time pitch shifting
-- That tool now has a "Sync pitch from web app" section: enter the server
-  URL + room ID, click Start Sync, and it polls
-  `/api/rooms/:roomId/now-playing` every ~1.5s, calling its existing
-  `PitchEngine.set_semitones()` whenever the polled value changes. This
-  bridges the web app's stored pitch value to actual audio processing on
-  the host machine.
-- **Remaining work**: this hasn't been tested against a live server yet —
-  needs an end-to-end run (start the web app server, create a room, start
-  the pitch shifter, hit Start Sync, queue a song with a non-zero pitch,
-  confirm the key actually shifts).
+- `extension/` uses `chrome.tabCapture` to capture just that tab's audio,
+  runs it through a real-time pitch-shift `AudioWorklet`
+  ([SoundTouchJS](https://github.com/cutterbl/SoundTouchJS),
+  `@soundtouchjs/audio-worklet`, LGPL-2.1), and plays the shifted audio
+  back out (this is also what keeps the tab audible — tabCapture mutes a
+  tab's native output once captured).
+- It opens its **own Socket.IO connection** directly to this server —
+  the same `join_room`/`state_update` contract `client/src/pages/HostView.jsx`
+  itself uses — so it learns the current song's `pitch_semitones` the
+  instant it changes, no REST polling, and **no changes to `client/` or
+  `server/` were needed** for this to work.
+- Build/setup/usage: see `extension/README.md`.
+- **Remaining work**: built and syntax-checked (`node build.js` runs
+  clean, esbuild bundle verified), but not yet loaded into real Chrome —
+  needs an end-to-end pass on a machine with an actual display: load
+  unpacked, start the web app, create a room, queue a song with a
+  non-zero pitch, open Host Display, Start Pitch Sync, confirm the key
+  actually shifts audibly.
+- **Production note**: if `CORS_ORIGIN` (see `server/.env.example`) is
+  ever tightened away from `*`, the extension's origin
+  (`chrome-extension://<id>`) must be added too, or its socket connection
+  will be rejected by CORS.
+
+The `/api/rooms/:roomId/now-playing` REST endpoint (`server/src/routes.js`)
+and the **separate, independent local Python tool** (`pitch changer/`
+folder, outside this repo — VB-Cable + `pylibrb`, system-wide audio
+pitch-shifting for Windows) both still exist and both still work — the
+Python tool even has its own "Sync pitch from web app" polling feature
+that uses that same endpoint. Neither is used by or required for this app
+anymore now that `extension/` exists; they're just untouched, standalone,
+and still functional if ever needed.
 
 ## Known simplifications (v1, worth revisiting)
 

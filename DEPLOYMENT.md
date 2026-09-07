@@ -71,6 +71,16 @@ CORS_ORIGIN=https://karaoke.yourdomain.com
 YOUTUBE_API_KEY=your_real_key_here
 ```
 
+> **If you use the `extension/` Chrome extension (pitch sync) against this
+> deployment:** it opens its own Socket.IO connection from a
+> `chrome-extension://<id>` origin, which the single-string `CORS_ORIGIN`
+> above will reject once it's no longer `*`. `server/src/index.js` passes
+> `CORS_ORIGIN` straight through to Socket.IO's `cors.origin` — that
+> option also accepts an array or a function, so this needs a small code
+> change (not yet done) to allow both the real frontend origin and the
+> extension's `chrome-extension://<id>` origin before pitch sync will work
+> against a hardened production CORS setting.
+
 Then:
 ```bash
 npm install

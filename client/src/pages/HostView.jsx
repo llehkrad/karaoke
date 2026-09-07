@@ -12,6 +12,10 @@ export default function HostView() {
   const [state, setState] = useState(null);
   const [connError, setConnError] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [extensionDetected, setExtensionDetected] = useState(
+    () => document.documentElement.dataset.karaokePitchSync === "installed"
+  );
+  const [extensionNoticeDismissed, setExtensionNoticeDismissed] = useState(false);
 
   const playerRef = useRef(null);
   const videoFrameRef = useRef(null);
@@ -60,6 +64,29 @@ export default function HostView() {
     socket.on("playback_control", handlePlaybackControl);
     return () => socket.off("playback_control", handlePlaybackControl);
   }, []);
+
+  // A website can't install a Chrome extension itself -- the best it can
+  // do is detect one that's already installed (via the tiny content
+  // script it injects into this page, see extension/content-detect.js)
+  // and prompt the host to set it up manually if it's missing.
+  useEffect(() => {
+    if (extensionDetected) return;
+    function handleReady() {
+      setExtensionDetected(true);
+    }
+    window.addEventListener("karaoke-pitch-sync-ready", handleReady);
+    const interval = setInterval(() => {
+      if (document.documentElement.dataset.karaokePitchSync === "installed") {
+        setExtensionDetected(true);
+      }
+    }, 1000);
+    const timeout = setTimeout(() => clearInterval(interval), 8000);
+    return () => {
+      window.removeEventListener("karaoke-pitch-sync-ready", handleReady);
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [extensionDetected]);
 
   useEffect(() => {
     function handleFullscreenChange() {
@@ -133,6 +160,18 @@ export default function HostView() {
 
   return (
     <div className="host-stage">
+      {!extensionDetected && !extensionNoticeDismissed && (
+        <div className="host-extension-notice">
+          <span>
+            Pitch-sync extension not detected — songs will play at their original key. Load it via{" "}
+            <code>chrome://extensions</code> → Developer mode → Load unpacked → select the{" "}
+            <code>extension/</code> folder.
+          </span>
+          <button className="btn btn-secondary" onClick={() => setExtensionNoticeDismissed(true)}>
+            Dismiss
+          </button>
+        </div>
+      )}
       {nowPlaying ? (
         <>
           <div className="host-video-frame" ref={videoFrameRef}>

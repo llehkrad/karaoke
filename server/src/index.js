@@ -8,7 +8,10 @@ import { router } from "./routes.js";
 import { registerSocketHandlers } from "./socketHandlers.js";
 
 const PORT = process.env.PORT || 3001;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "*"; // tighten this to your real frontend domain in production
+// Comma-separated list, e.g. "https://sing.everythinglah.com,chrome-extension://<id>"
+const CORS_ORIGIN = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
+  : "*";
 
 const app = express();
 app.use(cors({ origin: CORS_ORIGIN }));

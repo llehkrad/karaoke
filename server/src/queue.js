@@ -163,3 +163,22 @@ export function getRecentHistory(roomId, limit = 20) {
     )
     .all(roomId, limit);
 }
+
+export function updateItemPitch(roomId, itemId, semitones) {
+  const clamped = Math.max(-12, Math.min(12, Math.round(semitones)));
+  db.prepare("UPDATE queue_items SET pitch_semitones = ? WHERE id = ? AND room_id = ?").run(
+    clamped,
+    itemId,
+    roomId
+  );
+}
+
+export function reorderQueue(roomId, orderedItemIds) {
+  const update = db.prepare("UPDATE queue_items SET position = ? WHERE id = ?");
+  const tx = db.transaction((ids) => {
+    ids.forEach((id, idx) => {
+      update.run(idx + 1, id);
+    });
+  });
+  tx(orderedItemIds);
+}

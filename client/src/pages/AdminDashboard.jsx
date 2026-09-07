@@ -68,7 +68,7 @@ export default function AdminDashboard() {
       <div className="admin-shell">
         <div className="admin-header">
           <div className="admin-header-inner">
-            <span className="admin-brand">Karaoke Admin</span>
+            <span className="admin-brand">Sing! Admin</span>
           </div>
         </div>
         <div className="page">
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
     <div className="admin-shell">
       <div className="admin-header">
         <div className="admin-header-inner">
-          <span className="admin-brand">Karaoke Admin</span>
+          <span className="admin-brand">Sing! Admin</span>
           <button className="btn btn-secondary" onClick={logout}>
             Log out
           </button>

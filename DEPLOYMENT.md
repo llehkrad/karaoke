@@ -21,7 +21,7 @@ In the instance's **Networking** tab:
   internally
 
 If you own a domain, point an A record at the static IP now (e.g.
-`karaoke.yourdomain.com`). You can also just use the raw IP if you don't
+`sing.everythinglah.com`). You can also just use the raw IP if you don't
 want a domain, but HTTPS setup (step 6) needs a domain name to work.
 
 ## 3. Connect and install Node.js
@@ -67,7 +67,7 @@ nano .env
 Fill in:
 ```
 PORT=3001
-CORS_ORIGIN=https://karaoke.yourdomain.com
+CORS_ORIGIN=https://sing.everythinglah.com
 YOUTUBE_API_KEY=your_real_key_here
 ADMIN_PASSWORD=pick_a_strong_password
 ```
@@ -99,7 +99,7 @@ pm2 startup    # follow the printed instructions to enable auto-start on reboot
 
 ```bash
 cd ~/karaoke-app/client
-echo "VITE_SERVER_URL=https://karaoke.yourdomain.com" > .env.production
+echo "VITE_SERVER_URL=https://sing.everythinglah.com" > .env.production
 npm install
 npm run build     # produces client/dist/
 ```
@@ -111,7 +111,7 @@ Create `/etc/nginx/sites-available/karaoke`:
 ```nginx
 server {
     listen 80;
-    server_name karaoke.yourdomain.com;
+    server_name sing.everythinglah.com;
 
     root /home/ubuntu/karaoke-app/client/dist;
     index index.html;
@@ -144,13 +144,13 @@ sudo nginx -t          # test the config
 sudo systemctl reload nginx
 ```
 
-At this point `http://karaoke.yourdomain.com` should work. Next, HTTPS:
+At this point `http://sing.everythinglah.com` should work. Next, HTTPS:
 
 ## 8. HTTPS (recommended — do this before actual parties)
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d karaoke.yourdomain.com
+sudo certbot --nginx -d sing.everythinglah.com
 ```
 
 Follow the prompts (enter your email, agree to terms). Certbot edits your
@@ -158,7 +158,7 @@ nginx config automatically and sets up auto-renewal.
 
 ## 9. Test it
 
-- Open `https://karaoke.yourdomain.com` on your laptop → create a room
+- Open `https://sing.everythinglah.com` on your laptop → create a room
 - Scan the QR code with your phone (on cellular data, not WiFi, to confirm
   it truly works over the public internet) → you should land on the guest
   search page

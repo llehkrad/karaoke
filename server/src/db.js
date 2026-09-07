@@ -47,4 +47,34 @@ CREATE TABLE IF NOT EXISTS song_history (
   play_count          INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (room_id, video_id)
 );
+
+CREATE TABLE IF NOT EXISTS users (
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  username            TEXT NOT NULL UNIQUE,
+  password_hash       TEXT NOT NULL,
+  role                TEXT NOT NULL DEFAULT 'power' CHECK (role IN ('admin', 'power')),
+  created_at          INTEGER NOT NULL
+);
+
+-- Ties a power-user account to a permanent room they're allowed to manage.
+-- Admin accounts always have full access to every room and are never
+-- inserted here (see verifyHost / listRooms filtering).
+CREATE TABLE IF NOT EXISTS room_members (
+  room_id     TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  username    TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
+  added_at    INTEGER NOT NULL,
+  PRIMARY KEY (room_id, username)
+);
 `);
+
+// Initialize default admin user if none exists
+const existingAdmin = db.prepare("SELECT * FROM users WHERE role = 'admin'").get();
+if (!existingAdmin && process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
+  const crypto = await import("node:crypto");
+  const hash = crypto.createHash("sha256").update(process.env.ADMIN_PASSWORD).digest("hex");
+  db.prepare("INSERT INTO users (username, password_hash, role, created_at) VALUES (?, ?, 'admin', ?)").run(
+    process.env.ADMIN_USERNAME,
+    hash,
+    Date.now()
+  );
+}

@@ -1,4 +1,4 @@
-import { getRoom, verifyHost, pauseRoom, resumeRoom, endSessionRoom } from "./rooms.js";
+import { getRoom, verifyHost, pauseRoom, resumeRoom, endSessionRoom, deleteRoom } from "./rooms.js";
 import {
   getFullState,
   addToQueue,
@@ -6,10 +6,18 @@ import {
   shuffleQueue,
   advanceQueue,
   updateNowPlayingPitch,
+  updateItemPitch,
+  reorderQueue,
 } from "./queue.js";
 import { searchYoutube } from "./youtube.js";
 
 const PLAYBACK_ACTIONS = new Set(["pause", "resume", "restart"]);
+
+// Tracks which single socket is the "live" Host Display for each room, so
+// opening a second one anywhere can bump the first. In-memory and
+// per-server-process by design -- a fresh server restart just lets
+// whichever Host Display reconnects first reclaim the room, which is fine.
+const activeHostDisplays = new Map();
 
 function roomChannel(roomId) {
   return `room:${roomId}`;
@@ -31,6 +39,44 @@ export function registerSocketHandlers(io) {
       socket.join(roomChannel(roomId));
       socket.data.roomId = roomId;
       ack?.({ ok: true, state: getFullState(roomId) });
+    });
+
+    // Only one Host Display should be "live" per room at a time. Claiming
+    // bumps whatever socket previously held it -- that client gets a
+    // host_display_replaced event and shows a disabled screen instead of
+    // silently double-playing audio/video in two places.
+    socket.on("claim_host_display", ({ roomId }, ack) => {
+      const room = getRoom(roomId);
+      if (!room) {
+        ack?.({ ok: false, error: "Room not found." });
+        return;
+      }
+
+      const previousSocketId = activeHostDisplays.get(roomId);
+      if (previousSocketId && previousSocketId !== socket.id) {
+        io.to(previousSocketId).emit("host_display_replaced");
+      }
+
+      activeHostDisplays.set(roomId, socket.id);
+      socket.data.hostDisplayRoomId = roomId;
+      ack?.({ ok: true });
+    });
+
+    socket.on("disconnect", () => {
+      const rid = socket.data.hostDisplayRoomId;
+      if (rid && activeHostDisplays.get(rid) === socket.id) {
+        activeHostDisplays.delete(rid);
+      }
+    });
+
+    // Host Display reports whether a play command it just tried to obey
+    // actually took effect, or was silently blocked by the browser's
+    // autoplay policy (which no remote command can force past -- only a
+    // real click on that page can). Relayed to everyone else in the room
+    // (Manage Room) so a blocked remote control shows a heads-up instead
+    // of silently doing nothing. Informational only, no auth needed.
+    socket.on("host_playback_status", ({ roomId, needsInteraction }) => {
+      socket.to(roomChannel(roomId)).emit("host_playback_status", { needsInteraction });
     });
 
     socket.on("search_youtube", async ({ query }, ack) => {
@@ -70,7 +116,13 @@ export function registerSocketHandlers(io) {
       ack?.({ ok: true });
     });
 
-    socket.on("shuffle_queue", ({ roomId }, ack) => {
+    // Host-only: shuffling the whole queue (unlike a guest reordering just
+    // their own songs) is a room-management action.
+    socket.on("shuffle_queue", ({ roomId, hostToken }, ack) => {
+      if (!verifyHost(roomId, hostToken)) {
+        ack?.({ ok: false, error: "Invalid host token." });
+        return;
+      }
       shuffleQueue(roomId);
       broadcastState(io, roomId);
       ack?.({ ok: true });
@@ -160,6 +212,74 @@ export function registerSocketHandlers(io) {
       io.to(roomChannel(roomId)).emit("room_ended");
       endSessionRoom(roomId);
       ack?.({ ok: true });
+    });
+
+    // Guest-only: adjust pitch for a specific queued item before it plays
+    socket.on("set_item_pitch", ({ roomId, itemId, semitones }, ack) => {
+      try {
+        updateItemPitch(roomId, itemId, semitones);
+        broadcastState(io, roomId);
+        ack?.({ ok: true });
+      } catch (err) {
+        ack?.({ ok: false, error: err.message });
+      }
+    });
+
+    // Guest-only: cut (end and skip) the current song
+    socket.on("cut_song", ({ roomId, itemId }, ack) => {
+      try {
+        advanceQueue(roomId);
+        broadcastState(io, roomId);
+        ack?.({ ok: true });
+      } catch (err) {
+        ack?.({ ok: false, error: err.message });
+      }
+    });
+
+    // Reorders the queue to the given full item-id order. Used two ways:
+    // a host (Manage Room) freely reordering anything, sending hostToken;
+    // or a guest reordering just their own songs client-side (the client
+    // only ever moves the guest's own items within the full order before
+    // sending it here) — that path is unauthenticated, same trust model as
+    // this app's other guest-facing queue actions (cut/remove/set pitch).
+    socket.on("reorder_queue", ({ roomId, queue, hostToken }, ack) => {
+      try {
+        if (hostToken && !verifyHost(roomId, hostToken)) {
+          ack?.({ ok: false, error: "Invalid host token." });
+          return;
+        }
+        reorderQueue(roomId, queue);
+        broadcastState(io, roomId);
+        ack?.({ ok: true });
+      } catch (err) {
+        ack?.({ ok: false, error: err.message });
+      }
+    });
+
+    // Host-only: delete a room (end session or delete permanent)
+    socket.on("delete_room", ({ roomId, hostToken }, ack) => {
+      try {
+        if (!verifyHost(roomId, hostToken)) {
+          ack?.({ ok: false, error: "Invalid host token." });
+          return;
+        }
+        const room = getRoom(roomId);
+        if (!room) {
+          ack?.({ ok: false, error: "Room not found." });
+          return;
+        }
+        // Delete fully removes the room (and its queue/history) for both
+        // session and permanent rooms, freeing the id/slug for reuse.
+        io.to(roomChannel(roomId)).emit("room_ended");
+        if (room.type === "session") {
+          endSessionRoom(roomId);
+        } else {
+          deleteRoom(roomId);
+        }
+        ack?.({ ok: true });
+      } catch (err) {
+        ack?.({ ok: false, error: err.message });
+      }
     });
   });
 }

@@ -1,8 +1,10 @@
-# Karaoke App
+# Sing! by everythingLah
 
 A multi-device karaoke party app. One screen (TV/laptop) shows the video and
 a join QR code; guests scan it with their phones to search YouTube, pick a
 karaoke version, set a pitch, and queue it up.
+
+Intended home: `sing.everythinglah.com`.
 
 ## How it works
 

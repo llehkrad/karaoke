@@ -33,6 +33,10 @@ export async function searchYoutube(query, maxResults = 12) {
   url.searchParams.set("part", "snippet");
   url.searchParams.set("q", query);
   url.searchParams.set("type", "video");
+  // Excludes videos the uploader has disabled embedding for -- those would
+  // otherwise show up in search only to fail silently on the Host Display
+  // once it's finally that guest's turn, sometimes much later.
+  url.searchParams.set("videoEmbeddable", "true");
   url.searchParams.set("maxResults", String(maxResults));
   url.searchParams.set("key", YT_API_KEY);
 

@@ -11,7 +11,10 @@ export default function HostView() {
 
   const [state, setState] = useState(null);
   const [connError, setConnError] = useState("");
+  const [replaced, setReplaced] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [needsInteraction, setNeedsInteraction] = useState(false);
+  const [fullscreenError, setFullscreenError] = useState("");
   const [extensionDetected, setExtensionDetected] = useState(
     () => document.documentElement.dataset.karaokePitchSync === "installed"
   );
@@ -19,8 +22,46 @@ export default function HostView() {
 
   const playerRef = useRef(null);
   const videoFrameRef = useRef(null);
+  const interactionCheckRef = useRef(null);
 
   const joinUrl = `${window.location.origin}/join/${roomId}`;
+
+  useEffect(() => {
+    document.title = `Room ${roomId} - Sing!`;
+  }, [roomId]);
+
+  // Browsers block programmatic play() calls that aren't triggered by a
+  // real click/tap on this page -- which is exactly what a remote
+  // resume/restart from Manage Room, or an autoplay on song change, is.
+  // Since that failure is silent (no error, no event), the only reliable
+  // way to catch it is to check shortly after whether playback actually
+  // started. When it didn't, this both shows a real button here for
+  // someone at the TV to tap, AND reports it back to the room so Manage
+  // Room can show a heads-up instead of its own controls silently doing
+  // nothing -- a remote click can never satisfy the "real gesture on this
+  // page" requirement itself, so this status round-trip is the honest
+  // substitute for a true remote override.
+  function reportInteractionStatus(value) {
+    setNeedsInteraction(value);
+    socket.emit("host_playback_status", { roomId, needsInteraction: value });
+  }
+
+  function scheduleInteractionCheck() {
+    if (interactionCheckRef.current) clearTimeout(interactionCheckRef.current);
+    interactionCheckRef.current = setTimeout(() => {
+      const state = playerRef.current?.getPlayerState?.();
+      if (state !== 1 && state !== 3) {
+        reportInteractionStatus(true);
+      }
+    }, 1500);
+  }
+
+  useEffect(() => {
+    reportInteractionStatus(false);
+    return () => {
+      if (interactionCheckRef.current) clearTimeout(interactionCheckRef.current);
+    };
+  }, [state?.nowPlaying?.video_id]);
 
   useEffect(() => {
     let mounted = true;
@@ -33,42 +74,45 @@ export default function HostView() {
         return;
       }
       setState(ack.state);
+      // Claim this tab as the one live Host Display for the room -- if
+      // another one was already open, it gets bumped to a disabled screen.
+      socket.emit("claim_host_display", { roomId });
     }
 
     if (socket.connected) join();
     socket.on("connect", join);
     socket.on("state_update", (s) => mounted && setState(s));
     socket.on("room_ended", () => mounted && setConnError("This session room has ended."));
+    socket.on("host_display_replaced", () => mounted && setReplaced(true));
 
     return () => {
       mounted = false;
       socket.off("connect", join);
       socket.off("state_update");
       socket.off("room_ended");
+      socket.off("host_display_replaced");
     };
   }, [roomId]);
 
-  // Live remote control from the admin panel (pause/resume/restart the
-  // actual player in place) -- a transient signal, not part of state_update.
   useEffect(() => {
     function handlePlaybackControl({ action }) {
       const player = playerRef.current;
       if (!player) return;
-      if (action === "pause") player.pauseVideo();
-      else if (action === "resume") player.playVideo();
-      else if (action === "restart") {
+      if (action === "pause") {
+        player.pauseVideo();
+      } else if (action === "resume") {
+        player.playVideo();
+        scheduleInteractionCheck();
+      } else if (action === "restart") {
         player.seekTo(0);
         player.playVideo();
+        scheduleInteractionCheck();
       }
     }
     socket.on("playback_control", handlePlaybackControl);
     return () => socket.off("playback_control", handlePlaybackControl);
   }, []);
 
-  // A website can't install a Chrome extension itself -- the best it can
-  // do is detect one that's already installed (via the tiny content
-  // script it injects into this page, see extension/content-detect.js)
-  // and prompt the host to set it up manually if it's missing.
   useEffect(() => {
     if (extensionDetected) return;
     function handleReady() {
@@ -90,7 +134,9 @@ export default function HostView() {
 
   useEffect(() => {
     function handleFullscreenChange() {
-      setIsFullscreen(document.fullscreenElement === videoFrameRef.current);
+      const active = document.fullscreenElement === videoFrameRef.current;
+      setIsFullscreen(active);
+      if (active) setFullscreenError("");
     }
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
@@ -99,9 +145,20 @@ export default function HostView() {
   function toggleFullscreen() {
     if (document.fullscreenElement) {
       document.exitFullscreen();
-    } else {
-      videoFrameRef.current?.requestFullscreen();
+      return;
     }
+    setFullscreenError("");
+    // Chrome refuses fullscreen while this tab is being captured (which is
+    // exactly what the pitch-sync extension does while it's running) --
+    // a browser security behavior, not something this page can override.
+    // requestFullscreen() rejects rather than throwing, so without this
+    // catch it fails completely silently.
+    videoFrameRef.current?.requestFullscreen().catch(() => {
+      setFullscreenError(
+        "Fullscreen was blocked. If Pitch Sync is running, stop it first — Chrome won't fullscreen a tab it's " +
+          "capturing. Otherwise, try launching Chrome in kiosk mode instead."
+      );
+    });
   }
 
   const handleVideoEnd = useCallback(() => {
@@ -109,20 +166,19 @@ export default function HostView() {
     socket.emit("video_ended", { roomId, hostToken });
   }, [roomId, hostToken]);
 
-  const handleSkip = () => {
-    if (!hostToken) return;
-    socket.emit("skip_current", { roomId, hostToken });
-  };
-
-  const handlePause = () => {
-    if (!hostToken) return;
-    socket.emit("pause_room", { roomId, hostToken });
-  };
-
-  const handleResume = () => {
-    if (!hostToken) return;
-    socket.emit("resume_room", { roomId, hostToken });
-  };
+  if (replaced) {
+    return (
+      <div className="host-stage">
+        <h1 className="display" style={{ fontSize: "2.2rem", color: "var(--text-on-dark)" }}>
+          This display was opened elsewhere
+        </h1>
+        <p className="text-dim">
+          Only one Host Display can be active per room at a time. Close this tab, or reopen it from Manage Room to
+          take over again.
+        </p>
+      </div>
+    );
+  }
 
   if (connError) {
     return (
@@ -151,9 +207,6 @@ export default function HostView() {
           Room paused
         </h1>
         <p className="text-dim">Your queue and song history are saved.</p>
-        <button className="btn btn-primary" onClick={handleResume}>
-          Resume
-        </button>
       </div>
     );
   }
@@ -185,9 +238,28 @@ export default function HostView() {
               onEnd={handleVideoEnd}
               onReady={(e) => {
                 playerRef.current = e.target;
+                scheduleInteractionCheck();
+              }}
+              onStateChange={(e) => {
+                if (e.data === 1) {
+                  reportInteractionStatus(false);
+                  if (interactionCheckRef.current) clearTimeout(interactionCheckRef.current);
+                }
               }}
               style={{ width: "100%", height: "100%" }}
             />
+            {needsInteraction && (
+              <button
+                className="host-tap-to-play"
+                onClick={() => {
+                  playerRef.current?.playVideo();
+                  reportInteractionStatus(false);
+                }}
+              >
+                ▶ Tap to play
+              </button>
+            )}
+            {fullscreenError && <div className="host-fullscreen-error">{fullscreenError}</div>}
             <button
               className="btn btn-secondary host-fullscreen-btn"
               onClick={toggleFullscreen}
@@ -196,18 +268,6 @@ export default function HostView() {
               {isFullscreen ? "Exit fullscreen" : "Fullscreen"}
             </button>
           </div>
-          <div className="row">
-            <span className="pill pill-energy">
-              Pitch {nowPlaying.pitch_semitones > 0 ? "+" : ""}
-              {nowPlaying.pitch_semitones}
-            </span>
-            {nowPlaying.added_by && <span className="pill">Picked by {nowPlaying.added_by}</span>}
-          </div>
-          {hostToken && (
-            <button className="btn btn-secondary" onClick={handleSkip}>
-              Skip song
-            </button>
-          )}
         </>
       ) : (
         <>
@@ -227,16 +287,6 @@ export default function HostView() {
           </p>
           <p style={{ margin: 0 }}>{queue[0].title}</p>
         </div>
-      )}
-
-      {hostToken && room.type === "permanent" && (
-        <button
-          className="btn btn-secondary"
-          style={{ position: "fixed", top: 20, right: 20 }}
-          onClick={handlePause}
-        >
-          Pause room (end for tonight)
-        </button>
       )}
     </div>
   );

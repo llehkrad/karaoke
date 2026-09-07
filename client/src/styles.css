@@ -95,6 +95,9 @@ input {
   font-size: 0.95rem;
   font-weight: 500;
   transition: background-color 120ms var(--ease), color 120ms var(--ease), transform 80ms ease;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .btn:active {
@@ -113,6 +116,7 @@ input {
 .btn-secondary {
   background: var(--field);
   color: var(--text);
+  border: 1px solid var(--text-muted);
 }
 
 .btn-secondary:hover {
@@ -125,12 +129,103 @@ input {
   border: 1px solid var(--danger);
 }
 
+/* ---------- Top Bar ---------- */
+
+.top-bar {
+  width: 100%;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+  padding: 3px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.top-bar-inner {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logo img {
+  height: 75px;
+  width: auto;
+  display: block;
+}
+
+/* ---------- Modal ---------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 28, 39, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal-content {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(24, 28, 39, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-content h2 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+  color: var(--accent);
+}
+
+.modal-content input {
+  padding: 14px 20px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-buttons .btn {
+  flex: 1;
+}
+
+/* ---------- Pages ---------- */
+
 .page {
-  min-height: 100%;
+  min-height: calc(100vh - 56px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px;
+  padding: 32px 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .card {
@@ -140,6 +235,19 @@ input {
   padding: 24px;
   width: 100%;
   max-width: 480px;
+}
+
+.main-content {
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+}
+
+/* Compound selector so this always outranks any single ".card" rule
+   (including the responsive @media override below), regardless of
+   source order, whenever both classes are combined. */
+.card.main-content {
+  max-width: 960px;
 }
 
 .text-dim {
@@ -232,6 +340,7 @@ input[type="range"] {
 .host-stage .btn-secondary {
   background: var(--panel);
   color: var(--text-on-dark);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .host-stage .btn-secondary:hover {
@@ -248,8 +357,21 @@ input[type="range"] {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Kept as separate rules, not a comma list: a browser that doesn't
+   recognize one pseudo-class (e.g. Firefox with the -webkit- prefixed one)
+   drops the whole rule for a combined selector list, not just that part. */
 .host-video-frame:fullscreen {
   max-width: none;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+  aspect-ratio: auto;
+}
+
+.host-video-frame:-webkit-full-screen {
+  max-width: none;
+  width: 100vw;
+  height: 100vh;
   border-radius: 0;
   aspect-ratio: auto;
 }
@@ -266,6 +388,42 @@ input[type="range"] {
 
 .host-fullscreen-btn:hover {
   opacity: 1;
+}
+
+.host-fullscreen-error {
+  position: absolute;
+  bottom: 60px;
+  right: 16px;
+  left: 16px;
+  z-index: 2;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(228, 72, 61, 0.85);
+  color: #fff;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.host-tap-to-play {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: rgba(10, 12, 24, 0.72);
+  color: var(--text-on-dark);
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.host-tap-to-play:hover {
+  background: rgba(10, 12, 24, 0.82);
 }
 
 .host-idle-qr {
@@ -327,9 +485,13 @@ input[type="range"] {
 /* ---------- Guest View (light workspace) ---------- */
 
 .guest-page {
-  max-width: 520px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 20px 16px 100px;
+  padding: 32px 24px 48px;
+  width: 100%;
+}
+
+.guest-queue-container {
   width: 100%;
 }
 
@@ -387,6 +549,18 @@ input[type="range"] {
   border-color: var(--accent-soft);
 }
 
+.queue-item.guest-song {
+  border-color: var(--accent);
+  background: rgba(107, 102, 222, 0.05);
+}
+
+.queue-item.dragging {
+  position: relative;
+  z-index: 10;
+  box-shadow: var(--shadow-hover);
+  cursor: grabbing;
+}
+
 .queue-position {
   font-size: 1.1rem;
   font-weight: 700;
@@ -394,6 +568,32 @@ input[type="range"] {
   width: 28px;
   text-align: center;
   flex-shrink: 0;
+}
+
+.drag-handle {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
+  border-radius: var(--radius-sm, 6px);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.drag-handle:hover {
+  color: var(--text);
+  background: var(--field);
+}
+
+.drag-handle.disabled {
+  cursor: default;
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 .pitch-sheet {
@@ -429,15 +629,13 @@ input[type="range"] {
 }
 
 .tab-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--surface);
-  border-top: 1px solid var(--hairline);
   display: flex;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  background: var(--field);
+  border-radius: var(--radius-pill);
+  padding: 4px;
   gap: 8px;
+  margin-bottom: 16px;
+  max-width: 320px;
 }
 
 .tab-btn {
@@ -450,8 +648,9 @@ input[type="range"] {
 }
 
 .tab-btn.active {
-  background: var(--accent-soft);
+  background: var(--surface);
   color: var(--accent);
+  box-shadow: var(--shadow-hover);
 }
 
 /* ---------- Admin ---------- */
@@ -570,33 +769,18 @@ input[type="range"] {
   }
 
   .guest-page {
-    max-width: 900px;
+    max-width: 960px;
     padding-bottom: 32px;
   }
 
+  .page {
+    padding: 40px 24px;
+  }
+
   .search-results,
-  .queue-list-items,
   .admin-room-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  }
-
-  /* The fixed bottom tab bar is a mobile-app pattern -- once there's room,
-     it becomes a small static segmented control under the heading instead. */
-  .tab-bar {
-    position: static;
-    max-width: 320px;
-    margin: 4px 0 24px;
-    border-top: none;
-    border-radius: var(--radius-pill);
-    background: var(--field);
-    padding: 4px;
-  }
-
-  .tab-btn.active {
-    background: var(--surface);
-    color: var(--accent);
-    box-shadow: var(--shadow-hover);
   }
 
   .admin-dashboard,
@@ -627,12 +811,7 @@ input[type="range"] {
 }
 
 @media (min-width: 1100px) {
-  .guest-page {
-    max-width: 1100px;
-  }
-
-  .search-results,
-  .queue-list-items {
+  .search-results {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }

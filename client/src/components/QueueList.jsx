@@ -1,4 +1,12 @@
-export default function QueueList({ queue, nowPlaying, onShuffle, onRemove }) {
+import { useSortableList } from "../useSortableList.js";
+
+export default function QueueList({ queue, nowPlaying, onShuffle, onRemove, onReorder }) {
+  const sortable = useSortableList({
+    items: queue,
+    getId: (item) => item.id,
+    onReorder,
+  });
+
   return (
     <div className="stack">
       {nowPlaying && (
@@ -35,22 +43,33 @@ export default function QueueList({ queue, nowPlaying, onShuffle, onRemove }) {
       )}
 
       <div className="queue-list-items">
-        {queue.map((item, idx) => (
-          <div key={item.id} className="queue-item">
-            <div className="queue-position">{idx + 1}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 500 }}>{item.title}</div>
-              <div className="text-dim" style={{ fontSize: "0.85rem" }}>
-                Pitch {item.pitch_semitones > 0 ? "+" : ""}
-                {item.pitch_semitones}
-                {item.added_by ? ` · picked by ${item.added_by}` : ""}
+        {sortable.items.map((item, idx) => {
+          const isActive = sortable.activeId === item.id;
+          return (
+            <div
+              key={item.id}
+              ref={sortable.setRowRef(item.id)}
+              className={`queue-item ${isActive ? "dragging" : ""}`}
+              style={isActive ? { transform: `translateY(${sortable.dragOffset}px)` } : undefined}
+            >
+              <span className="drag-handle" {...sortable.dragHandleProps(item.id)}>
+                ⠿
+              </span>
+              <div className="queue-position">{idx + 1}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 500 }}>{item.title}</div>
+                <div className="text-dim" style={{ fontSize: "0.85rem" }}>
+                  Pitch {item.pitch_semitones > 0 ? "+" : ""}
+                  {item.pitch_semitones}
+                  {item.added_by ? ` · picked by ${item.added_by}` : ""}
+                </div>
               </div>
+              <button className="btn btn-danger" onClick={() => onRemove(item.id)}>
+                Remove
+              </button>
             </div>
-            <button className="btn btn-danger" onClick={() => onRemove(item.id)}>
-              Remove
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -11,6 +11,18 @@ YouTube, pick a karaoke version, set a pitch, and queue it up.
 Full architecture and setup instructions are in `README.md` and
 `DEPLOYMENT.md` at the repo root — read those first.
 
+## Design system
+
+The client is skinned per `design/melodyhub/CLAUDE.md` (the actual rules
+file — read it before touching any client UI) and `design/melodyhub/tokens.css`
+(the CSS custom properties `client/src/styles.css` is built on: one accent
+`--accent: #6B66DE`, radius ladder 8/12/16/999, hairline-not-shadow at
+rest, DM Sans 400/500/700, no emoji). Host Display is deliberately kept on
+the dark "stage" side of the system (it's a TV/kiosk screen); every other
+page is light-canvas/white-card. See the "Re-skin the app with the
+MelodyHub design system" commit for the full page-by-page mapping
+rationale.
+
 ## Status as of this handoff
 
 **Built and integration-tested** (via live socket connections, not just code

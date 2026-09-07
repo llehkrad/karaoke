@@ -114,25 +114,27 @@ export default function AdminDashboard() {
           {rooms === null && <p className="text-dim">Loading…</p>}
           {rooms?.length === 0 && <p className="text-dim">No rooms yet.</p>}
 
-          {rooms?.map((room) => (
-            <Link key={room.id} to={`/admin/${room.id}`} className="admin-room-row">
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 500 }}>
-                  {room.id} <span className="text-dim">· {room.type}</span>
+          <div className="admin-room-list">
+            {rooms?.map((room) => (
+              <Link key={room.id} to={`/admin/${room.id}`} className="admin-room-row">
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 500 }}>
+                    {room.id} <span className="text-dim">· {room.type}</span>
+                  </div>
+                  <div className="text-dim" style={{ fontSize: "0.85rem" }}>
+                    {room.status === "paused"
+                      ? "Paused"
+                      : room.nowPlayingTitle
+                      ? `Now playing: ${room.nowPlayingTitle}`
+                      : "Idle"}
+                    {" · "}
+                    {room.queueLength} queued
+                  </div>
                 </div>
-                <div className="text-dim" style={{ fontSize: "0.85rem" }}>
-                  {room.status === "paused"
-                    ? "Paused"
-                    : room.nowPlayingTitle
-                    ? `Now playing: ${room.nowPlayingTitle}`
-                    : "Idle"}
-                  {" · "}
-                  {room.queueLength} queued
-                </div>
-              </div>
-              <span className="pill">Manage →</span>
-            </Link>
-          ))}
+                <span className="pill">Manage →</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>

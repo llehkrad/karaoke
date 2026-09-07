@@ -123,85 +123,93 @@ export default function AdminRoomControl() {
         </div>
       </div>
       <div className="page">
-        <div className="card stack admin-room-control" style={{ marginTop: 0 }}>
-          <div>
-            <h1 className="display" style={{ fontSize: "1.6rem", color: "var(--accent)", margin: 0 }}>
-              {room.id}
-            </h1>
-            <p className="text-dim" style={{ margin: 0 }}>
-              {room.type} · {room.status}
-            </p>
-          </div>
-
-        <div className="row admin-links">
-          <a href={hostCastUrl} target="_blank" rel="noreferrer" className="btn btn-secondary">
-            Open Host Display
-          </a>
-          <a href={joinUrl} target="_blank" rel="noreferrer" className="btn btn-secondary">
-            Open guest join page
-          </a>
-        </div>
-
-        {nowPlaying ? (
-          <div className="stack admin-now-playing">
-            <p className="text-dim" style={{ marginBottom: -4 }}>
-              Now playing
-            </p>
-            <div style={{ fontWeight: 500, fontSize: "1.1rem" }}>{nowPlaying.title}</div>
-
-            <div className="row" style={{ alignItems: "center" }}>
-              <button className="btn btn-secondary" onClick={() => nudgePitch(-1)}>
-                −1
-              </button>
-              <span className="pill pill-energy">
-                Pitch {nowPlaying.pitch_semitones > 0 ? "+" : ""}
-                {nowPlaying.pitch_semitones}
-              </span>
-              <button className="btn btn-secondary" onClick={() => nudgePitch(1)}>
-                +1
-              </button>
+        <div className="admin-room-control">
+          <div className="card stack admin-control-col">
+            <div>
+              <h1 className="display" style={{ fontSize: "1.6rem", color: "var(--accent)", margin: 0 }}>
+                {room.id}
+              </h1>
+              <p className="text-dim" style={{ margin: 0 }}>
+                {room.type} · {room.status}
+              </p>
             </div>
 
-            <div className="admin-player-transport">
-              <button className="btn btn-secondary" onClick={() => sendPlayback("restart")} title="Restart song">
-                Restart
-              </button>
-              {isPaused ? (
-                <button
-                  className="btn btn-primary"
-                  onClick={() => sendPlayback("resume")}
-                  title="Resume"
-                  aria-label="Resume"
-                >
-                  ▶
-                </button>
-              ) : (
-                <button
-                  className="btn btn-primary"
-                  onClick={() => sendPlayback("pause")}
-                  title="Pause"
-                  aria-label="Pause"
-                >
-                  ❚❚
-                </button>
-              )}
-              <button className="btn btn-secondary" onClick={handleSkip} title="Skip song">
-                Skip
-              </button>
+            <div className="row admin-links">
+              <a href={hostCastUrl} target="_blank" rel="noreferrer" className="btn btn-secondary">
+                Open Host Display
+              </a>
+              <a href={joinUrl} target="_blank" rel="noreferrer" className="btn btn-secondary">
+                Open guest join page
+              </a>
             </div>
+
+            {nowPlaying ? (
+              <div className="stack admin-now-playing">
+                <p className="text-dim" style={{ marginBottom: -4 }}>
+                  Now playing
+                </p>
+                <div style={{ fontWeight: 500, fontSize: "1.1rem" }}>{nowPlaying.title}</div>
+
+                <div className="row" style={{ alignItems: "center" }}>
+                  <button className="btn btn-secondary" onClick={() => nudgePitch(-1)}>
+                    −1
+                  </button>
+                  <span className="pill pill-energy">
+                    Pitch {nowPlaying.pitch_semitones > 0 ? "+" : ""}
+                    {nowPlaying.pitch_semitones}
+                  </span>
+                  <button className="btn btn-secondary" onClick={() => nudgePitch(1)}>
+                    +1
+                  </button>
+                </div>
+
+                <div className="admin-player-transport">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => sendPlayback("restart")}
+                    title="Restart song"
+                  >
+                    Restart
+                  </button>
+                  {isPaused ? (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => sendPlayback("resume")}
+                      title="Resume"
+                      aria-label="Resume"
+                    >
+                      ▶
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => sendPlayback("pause")}
+                      title="Pause"
+                      aria-label="Pause"
+                    >
+                      ❚❚
+                    </button>
+                  )}
+                  <button className="btn btn-secondary" onClick={handleSkip} title="Skip song">
+                    Skip
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-dim">No song playing.</p>
+            )}
+
+            <details>
+              <summary className="text-dim" style={{ cursor: "pointer" }}>
+                Guest QR code
+              </summary>
+              <QRDisplay url={joinUrl} size={160} />
+            </details>
           </div>
-        ) : (
-          <p className="text-dim">No song playing.</p>
-        )}
 
-        <QueueList queue={queue} nowPlaying={null} onShuffle={handleShuffle} onRemove={handleRemove} />
-
-        <details>
-          <summary className="text-dim" style={{ cursor: "pointer" }}>
-            Guest QR code
-          </summary>
-          <QRDisplay url={joinUrl} size={160} />
-        </details>
+          <div className="card stack admin-playlist-col">
+            <QueueList queue={queue} nowPlaying={null} onShuffle={handleShuffle} onRemove={handleRemove} />
+          </div>
         </div>
       </div>
     </div>

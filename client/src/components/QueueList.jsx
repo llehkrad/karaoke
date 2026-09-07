@@ -34,22 +34,24 @@ export default function QueueList({ queue, nowPlaying, onShuffle, onRemove }) {
         <p className="text-dim">No songs queued yet — search above to add one.</p>
       )}
 
-      {queue.map((item, idx) => (
-        <div key={item.id} className="queue-item">
-          <div className="queue-position">{idx + 1}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 500 }}>{item.title}</div>
-            <div className="text-dim" style={{ fontSize: "0.85rem" }}>
-              Pitch {item.pitch_semitones > 0 ? "+" : ""}
-              {item.pitch_semitones}
-              {item.added_by ? ` · picked by ${item.added_by}` : ""}
+      <div className="queue-list-items">
+        {queue.map((item, idx) => (
+          <div key={item.id} className="queue-item">
+            <div className="queue-position">{idx + 1}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 500 }}>{item.title}</div>
+              <div className="text-dim" style={{ fontSize: "0.85rem" }}>
+                Pitch {item.pitch_semitones > 0 ? "+" : ""}
+                {item.pitch_semitones}
+                {item.added_by ? ` · picked by ${item.added_by}` : ""}
+              </div>
             </div>
+            <button className="btn btn-danger" onClick={() => onRemove(item.id)}>
+              Remove
+            </button>
           </div>
-          <button className="btn btn-danger" onClick={() => onRemove(item.id)}>
-            Remove
-          </button>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

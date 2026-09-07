@@ -48,7 +48,7 @@ export default function SearchPanel({ onPick }) {
 
       {error && <p style={{ color: "var(--danger)" }}>{error}</p>}
 
-      <div className="stack">
+      <div className="search-results">
         {results.map((r) => (
           <div key={r.videoId} className="search-result" onClick={() => onPick(r)}>
             <img src={r.thumbnail} alt="" />

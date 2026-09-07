@@ -350,7 +350,7 @@ input[type="range"] {
 .host-video-frame {
   position: relative;
   width: 100%;
-  max-width: 1600px;
+  max-width: 1500px;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-lg);
   overflow: hidden;

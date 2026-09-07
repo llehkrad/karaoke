@@ -26,28 +26,32 @@ review):
 - Full React frontend: Landing (create room), Host Display (QR/video/idle
   states), Guest View (search, pitch-picker bottom sheet, queue list)
 
-**NOT yet built — the most important next step:**
+**Built, not yet live-tested end-to-end:**
 
-Real audio pitch-shifting isn't wired up. YouTube's embed is a sandboxed
-cross-origin iframe — a web page has no legitimate way to reach into and
-process its audio, and downloading/re-serving YouTube's audio to work
-around that would violate YouTube's Terms of Service. So instead:
+Real audio pitch-shifting. YouTube's embed is a sandboxed cross-origin
+iframe — a web page has no legitimate way to reach into and process its
+audio, and downloading/re-serving YouTube's audio to work around that would
+violate YouTube's Terms of Service. So instead:
 
 - This app only stores/displays the chosen pitch per song
 - It exposes `GET /api/rooms/:roomId/now-playing` (see `server/src/routes.js`)
   returning `{ playing, videoId, title, pitchSemitones }` for whatever's
   currently playing
-- There's a **separate, already-working local Python tool** (a real-time
-  system-audio pitch shifter for Windows, built in an earlier project — see
-  the `pitch changer` project/folder, not part of this repo) that processes
-  whatever sound the host PC outputs, using VB-Cable (virtual audio device)
-  + `pylibrb` (Rubber Band Library bindings) for genuine real-time pitch
-  shifting
-- **The remaining work**: update that local tool to poll
-  `/api/rooms/:roomId/now-playing` (e.g. every 1-2 seconds) and call its
-  existing `PitchEngine.set_semitones()` method whenever the polled value
-  changes. This bridges the web app's stored pitch value to actual audio
-  processing on the host machine. Not yet implemented.
+- There's a **separate local Python tool** (a real-time system-audio pitch
+  shifter for Windows — see the `pitch changer` project/folder, not part of
+  this repo) that processes whatever sound the host PC outputs, using
+  VB-Cable (virtual audio device) + `pylibrb` (Rubber Band Library bindings)
+  for genuine real-time pitch shifting
+- That tool now has a "Sync pitch from web app" section: enter the server
+  URL + room ID, click Start Sync, and it polls
+  `/api/rooms/:roomId/now-playing` every ~1.5s, calling its existing
+  `PitchEngine.set_semitones()` whenever the polled value changes. This
+  bridges the web app's stored pitch value to actual audio processing on
+  the host machine.
+- **Remaining work**: this hasn't been tested against a live server yet —
+  needs an end-to-end run (start the web app server, create a room, start
+  the pitch shifter, hit Start Sync, queue a song with a non-zero pitch,
+  confirm the key actually shifts).
 
 ## Known simplifications (v1, worth revisiting)
 

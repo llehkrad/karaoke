@@ -41,7 +41,7 @@ export default function Landing() {
   return (
     <div className="page">
       <div className="card stack" style={{ marginTop: 40 }}>
-        <h1 className="display" style={{ fontSize: "2rem", color: "var(--spotlight)" }}>
+        <h1 className="display" style={{ fontSize: "2rem", color: "var(--accent)" }}>
           Start a karaoke room
         </h1>
         <p className="text-dim" style={{ marginTop: -4 }}>
@@ -92,7 +92,7 @@ export default function Landing() {
           {loading ? "Creating…" : "Create room"}
         </button>
 
-        <hr style={{ border: "none", borderTop: "1px solid var(--stage-panel-light)", margin: "8px 0" }} />
+        <hr style={{ border: "none", borderTop: "1px solid var(--hairline)", margin: "8px 0" }} />
 
         <p className="text-dim" style={{ marginBottom: -4 }}>
           Already have a permanent room? Jump back in with its link, or enter its ID:

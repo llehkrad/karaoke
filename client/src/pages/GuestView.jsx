@@ -120,7 +120,7 @@ export default function GuestView() {
   if (state.room.status === "paused") {
     return (
       <div className="guest-page">
-        <h1 className="display" style={{ color: "var(--spotlight)" }}>
+        <h1 className="display" style={{ color: "var(--accent)" }}>
           Room is paused
         </h1>
         <p className="text-dim">Ask the host to resume the room to keep queueing songs.</p>
@@ -130,8 +130,8 @@ export default function GuestView() {
 
   return (
     <div className="guest-page">
-      <h1 className="display" style={{ fontSize: "1.6rem", color: "var(--spotlight)", marginBottom: 16 }}>
-        🎤 {guestName}, pick a song
+      <h1 className="display" style={{ fontSize: "1.6rem", color: "var(--accent)", marginBottom: 16 }}>
+        {guestName}, pick a song
       </h1>
 
       {tab === "search" ? (
@@ -157,7 +157,7 @@ export default function GuestView() {
       {pendingVideo && (
         <div className="pitch-sheet" onClick={() => setPendingVideo(null)}>
           <div className="pitch-sheet-inner" onClick={(e) => e.stopPropagation()}>
-            <p style={{ fontWeight: 600, marginBottom: 4 }}>{pendingVideo.title}</p>
+            <p style={{ fontWeight: 500, marginBottom: 4 }}>{pendingVideo.title}</p>
             <p className="text-dim" style={{ marginTop: 0 }}>Set the pitch before adding to the queue</p>
 
             <div className="pitch-slider-row">

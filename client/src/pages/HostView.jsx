@@ -120,7 +120,7 @@ export default function HostView() {
   if (room.status === "paused") {
     return (
       <div className="host-stage">
-        <h1 className="display" style={{ fontSize: "2.5rem", color: "var(--spotlight)" }}>
+        <h1 className="display" style={{ fontSize: "2.5rem", color: "var(--accent-on-dark)" }}>
           Room paused
         </h1>
         <p className="text-dim">Your queue and song history are saved.</p>
@@ -154,7 +154,7 @@ export default function HostView() {
               onClick={toggleFullscreen}
               title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
             >
-              {isFullscreen ? "⤡ Exit fullscreen" : "⛶ Fullscreen"}
+              {isFullscreen ? "Exit fullscreen" : "Fullscreen"}
             </button>
           </div>
           <div className="row">
@@ -172,7 +172,8 @@ export default function HostView() {
         </>
       ) : (
         <>
-          <h1 className="display" style={{ fontSize: "2.6rem", color: "var(--spotlight)" }}>
+          <p className="host-eyebrow">Scan · Search · Sing</p>
+          <h1 className="display" style={{ fontSize: "2.6rem", color: "var(--text-on-dark)" }}>
             {queue.length === 0 ? "No song queued — scan to pick one!" : "Get ready…"}
           </h1>
           <QRDisplay url={joinUrl} />
@@ -182,7 +183,7 @@ export default function HostView() {
 
       {queue.length > 0 && (
         <div className="host-next-up">
-          <p className="text-dim" style={{ marginBottom: 6, fontWeight: 600 }}>
+          <p className="text-dim" style={{ marginBottom: 6, fontWeight: 500 }}>
             Up next
           </p>
           <p style={{ margin: 0 }}>{queue[0].title}</p>

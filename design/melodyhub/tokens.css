@@ -1,0 +1,68 @@
+:root {
+  /* Surfaces */
+  --mh-canvas: #FBFCFE;
+  --mh-surface: #FFFFFF;
+  --mh-field: #EFEFF9;
+  --mh-rail: #181C27;
+  --mh-stage: #040A18;
+  --mh-player: #1D2031;
+  --mh-panel: #262E45;
+  --mh-nav-active: #2F2D45;
+
+  /* Lines */
+  --mh-hairline: #EEF0F5;
+  --mh-border: #E4E7EF;
+  --mh-border-strong: #DDE0EA;
+
+  /* Accent */
+  --mh-accent: #6B66DE;
+  --mh-accent-hover: #5A55CE;
+  --mh-accent-soft: #F4F1FD;
+  --mh-accent-on-dark: #8E86C9;
+
+  /* Text */
+  --mh-text: #181C27;
+  --mh-text-secondary: #5A6070;
+  --mh-text-muted: #8A90A0;
+  --mh-text-body: #6E7482;
+  --mh-text-on-dark: #FFFFFF;
+  --mh-text-on-dark-secondary: #C9CEDC;
+  --mh-text-on-dark-muted: #8B92A6;
+
+  /* Category tiles */
+  --mh-violet: #9F8CE4;  --mh-violet-bg: #F4F1FD;
+  --mh-sky: #89B8EB;     --mh-sky-bg: #EAF3FD;
+  --mh-blush: #F9B8DD;   --mh-blush-bg: #FDEEF7;
+  --mh-mint: #7CD4AC;    --mh-mint-bg: #EAF9F2;
+
+  /* Chip over imagery */
+  --mh-chip-scrim: rgba(24, 28, 39, 0.72);
+
+  /* Spacing (8px base) */
+  --mh-space-1: 4px;  --mh-space-2: 8px;  --mh-space-3: 12px;
+  --mh-space-4: 16px; --mh-space-5: 20px; --mh-space-6: 24px;
+  --mh-space-8: 32px; --mh-space-10: 40px;
+
+  /* Radius */
+  --mh-radius-sm: 8px;
+  --mh-radius-md: 12px;
+  --mh-radius-lg: 16px;
+  --mh-radius-pill: 999px;
+
+  /* Type */
+  --mh-font: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --mh-font-script: 'Caveat', cursive;
+
+  /* Elevation */
+  --mh-shadow-hover: 0 4px 16px rgba(24, 28, 39, 0.06);
+
+  /* Motion */
+  --mh-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mh-duration-fast: 120ms;
+  --mh-duration: 160ms;
+
+  /* Layout */
+  --mh-rail-width: 240px;
+  --mh-context-width: 380px;
+  --mh-player-height: 96px;
+}

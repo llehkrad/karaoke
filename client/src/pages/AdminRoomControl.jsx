@@ -78,19 +78,33 @@ export default function AdminRoomControl() {
 
   if (connError) {
     return (
-      <div className="page">
-        <p style={{ color: "var(--danger)" }}>{connError}</p>
-        <Link to="/admin" className="btn btn-secondary">
-          Back to rooms
-        </Link>
+      <div className="admin-shell">
+        <div className="admin-header">
+          <div className="admin-header-inner">
+            <span className="admin-brand">Karaoke Admin</span>
+          </div>
+        </div>
+        <div className="page">
+          <p style={{ color: "var(--danger)" }}>{connError}</p>
+          <Link to="/admin" className="btn btn-secondary">
+            Back to rooms
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (!state) {
     return (
-      <div className="page">
-        <p className="text-dim">Connecting…</p>
+      <div className="admin-shell">
+        <div className="admin-header">
+          <div className="admin-header-inner">
+            <span className="admin-brand">Karaoke Admin</span>
+          </div>
+        </div>
+        <div className="page">
+          <p className="text-dim">Connecting…</p>
+        </div>
       </div>
     );
   }
@@ -99,21 +113,25 @@ export default function AdminRoomControl() {
   const hostCastUrl = `${window.location.origin}/host/${roomId}?hostToken=${adminToken}`;
 
   return (
-    <div className="page">
-      <div className="card stack admin-room-control" style={{ marginTop: 24 }}>
-        <div className="row" style={{ justifyContent: "space-between" }}>
+    <div className="admin-shell">
+      <div className="admin-header">
+        <div className="admin-header-inner">
+          <span className="admin-brand">Karaoke Admin</span>
+          <Link to="/admin" className="btn btn-secondary">
+            All rooms
+          </Link>
+        </div>
+      </div>
+      <div className="page">
+        <div className="card stack admin-room-control" style={{ marginTop: 0 }}>
           <div>
-            <h1 className="display" style={{ fontSize: "1.6rem", color: "var(--spotlight)", margin: 0 }}>
+            <h1 className="display" style={{ fontSize: "1.6rem", color: "var(--accent)", margin: 0 }}>
               {room.id}
             </h1>
             <p className="text-dim" style={{ margin: 0 }}>
               {room.type} · {room.status}
             </p>
           </div>
-          <Link to="/admin" className="btn btn-secondary">
-            All rooms
-          </Link>
-        </div>
 
         <div className="row admin-links">
           <a href={hostCastUrl} target="_blank" rel="noreferrer" className="btn btn-secondary">
@@ -129,7 +147,7 @@ export default function AdminRoomControl() {
             <p className="text-dim" style={{ marginBottom: -4 }}>
               Now playing
             </p>
-            <div style={{ fontWeight: 600, fontSize: "1.1rem" }}>{nowPlaying.title}</div>
+            <div style={{ fontWeight: 500, fontSize: "1.1rem" }}>{nowPlaying.title}</div>
 
             <div className="row" style={{ alignItems: "center" }}>
               <button className="btn btn-secondary" onClick={() => nudgePitch(-1)}>
@@ -144,21 +162,31 @@ export default function AdminRoomControl() {
               </button>
             </div>
 
-            <div className="row">
+            <div className="admin-player-transport">
+              <button className="btn btn-secondary" onClick={() => sendPlayback("restart")} title="Restart song">
+                Restart
+              </button>
               {isPaused ? (
-                <button className="btn btn-primary" onClick={() => sendPlayback("resume")}>
-                  ▶ Resume
+                <button
+                  className="btn btn-primary"
+                  onClick={() => sendPlayback("resume")}
+                  title="Resume"
+                  aria-label="Resume"
+                >
+                  ▶
                 </button>
               ) : (
-                <button className="btn btn-secondary" onClick={() => sendPlayback("pause")}>
-                  ⏸ Pause
+                <button
+                  className="btn btn-primary"
+                  onClick={() => sendPlayback("pause")}
+                  title="Pause"
+                  aria-label="Pause"
+                >
+                  ❚❚
                 </button>
               )}
-              <button className="btn btn-secondary" onClick={() => sendPlayback("restart")}>
-                ↺ Restart song
-              </button>
-              <button className="btn btn-secondary" onClick={handleSkip}>
-                Skip song
+              <button className="btn btn-secondary" onClick={handleSkip} title="Skip song">
+                Skip
               </button>
             </div>
           </div>
@@ -174,6 +202,7 @@ export default function AdminRoomControl() {
           </summary>
           <QRDisplay url={joinUrl} size={160} />
         </details>
+        </div>
       </div>
     </div>
   );

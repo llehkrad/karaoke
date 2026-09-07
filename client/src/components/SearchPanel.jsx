@@ -53,7 +53,7 @@ export default function SearchPanel({ onPick }) {
           <div key={r.videoId} className="search-result" onClick={() => onPick(r)}>
             <img src={r.thumbnail} alt="" />
             <div>
-              <div style={{ fontWeight: 600 }}>{r.title}</div>
+              <div style={{ fontWeight: 500 }}>{r.title}</div>
               <div className="text-dim" style={{ fontSize: "0.85rem" }}>
                 {r.channelTitle}
               </div>

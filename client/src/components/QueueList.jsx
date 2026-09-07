@@ -6,9 +6,9 @@ export default function QueueList({ queue, nowPlaying, onShuffle, onRemove }) {
           <p className="text-dim" style={{ marginBottom: -4 }}>
             Now playing
           </p>
-          <div className="queue-item" style={{ borderLeft: "4px solid var(--spotlight)" }}>
+          <div className="queue-item now-playing">
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600 }}>{nowPlaying.title}</div>
+              <div style={{ fontWeight: 500 }}>{nowPlaying.title}</div>
               <div className="text-dim" style={{ fontSize: "0.85rem" }}>
                 Pitch {nowPlaying.pitch_semitones > 0 ? "+" : ""}
                 {nowPlaying.pitch_semitones}
@@ -38,7 +38,7 @@ export default function QueueList({ queue, nowPlaying, onShuffle, onRemove }) {
         <div key={item.id} className="queue-item">
           <div className="queue-position">{idx + 1}</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600 }}>{item.title}</div>
+            <div style={{ fontWeight: 500 }}>{item.title}</div>
             <div className="text-dim" style={{ fontSize: "0.85rem" }}>
               Pitch {item.pitch_semitones > 0 ? "+" : ""}
               {item.pitch_semitones}

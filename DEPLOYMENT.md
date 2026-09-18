@@ -121,6 +121,14 @@ server {
         try_files $uri /index.html;
     }
 
+    # Short link to the Chrome Web Store listing for the Pitch Sync extension.
+    # /ext also works without this block (client/src/pages/ExtRedirect.jsx
+    # handles it via React Router), but a server-level redirect is faster
+    # and works for clients that don't run JS (e.g. link previews/crawlers).
+    location = /ext {
+        return 302 https://chromewebstore.google.com/detail/dbakpahjhjbllhhnffgdinnalcmbiapi;
+    }
+
     # Backend API
     location /api/ {
         proxy_pass http://localhost:3001;

@@ -9,6 +9,7 @@ import SingHost from "./pages/SingHost.jsx";
 import SingHostRoom from "./pages/SingHostRoom.jsx";
 import JoinRoom from "./pages/JoinRoom.jsx";
 import ManageUsers from "./pages/ManageUsers.jsx";
+import ExtRedirect from "./pages/ExtRedirect.jsx";
 import AdminLoginModal from "./components/AdminLoginModal.jsx";
 import "./styles.css";
 
@@ -25,6 +26,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/sing-host/:roomId" element={<SingHostRoom />} />
           <Route path="/sing-host/:roomId/join" element={<JoinRoom />} />
           <Route path="/manage-users" element={<ManageUsers />} />
+          <Route path="/ext" element={<ExtRedirect />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

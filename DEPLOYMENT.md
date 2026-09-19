@@ -125,6 +125,8 @@ server {
     # /ext also works without this block (client/src/pages/ExtRedirect.jsx
     # handles it via React Router), but a server-level redirect is faster
     # and works for clients that don't run JS (e.g. link previews/crawlers).
+    # LIVE on production as of 2026-09-19 — verified sing.everythinglah.com/ext
+    # returns 302 to the Chrome Web Store listing.
     location = /ext {
         return 302 https://chromewebstore.google.com/detail/dbakpahjhjbllhhnffgdinnalcmbiapi;
     }

@@ -231,6 +231,15 @@ end-to-end with real audio** (same caveat as before — needs a real
 display). This session's work was entirely about *distributing* it as an
 unlisted Chrome Web Store item, not the pitch-shifting logic itself:
 
+**`/ext` short-link redirect is LIVE in production (2026-09-19).** Added
+the `location = /ext { return 302 ...; }` block (see `DEPLOYMENT.md` §7)
+directly to `/etc/nginx/sites-available/karaoke` on the Lightsail
+instance and reloaded nginx — confirmed via `curl -I
+https://sing.everythinglah.com/ext` returning `302` to the Chrome Web
+Store listing. This was the one outstanding deploy-side gap between the
+app code (`client/src/pages/ExtRedirect.jsx`, merged via PR #1) and the
+real server; both layers now agree.
+
 - `manifest.json`'s `description` was 169 chars; Chrome Web Store caps it
   at 132 — trimmed.
 - The upload zip must have `manifest.json` at its **root**, not nested in

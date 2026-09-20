@@ -21,6 +21,14 @@ says "Sing!".
 Full architecture and setup instructions are in `README.md` and
 `DEPLOYMENT.md` at the repo root — read those first.
 
+## Production server access
+
+Live production deployment is on AWS Lightsail (Singapore region). This
+repo is public, so the server's IP, SSH key path, and deploy commands are
+**not** committed here — see `.claude/CLAUDE.local.md` (gitignored) for
+connection details, or ask Edwin directly. `DEPLOYMENT.md` still has the
+general, non-instance-specific setup walkthrough.
+
 ## ⚠️ Working tree is uncommitted
 
 As of this handoff, **everything described below beyond commit `c477021`

@@ -58,6 +58,15 @@ export default function HostView() {
 
   useEffect(() => {
     reportInteractionStatus(false);
+    // Loading a new video_id into the same player (react-youtube's
+    // loadVideoById on prop change) is itself an autoplay attempt, exactly
+    // like the initial onReady load and a manual resume/restart -- it needs
+    // the same watchdog armed, or a blocked auto-advance goes completely
+    // undetected: no overlay, no host_playback_status warning, the player
+    // just sits there paused on the new song forever.
+    if (state?.nowPlaying?.video_id) {
+      scheduleInteractionCheck();
+    }
     return () => {
       if (interactionCheckRef.current) clearTimeout(interactionCheckRef.current);
     };

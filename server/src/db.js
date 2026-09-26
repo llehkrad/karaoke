@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS rooms (
   status          TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'ended')),
   host_token      TEXT NOT NULL,
   now_playing_id  INTEGER,
+  show_qr_when_idle INTEGER NOT NULL DEFAULT 1,
   created_at      INTEGER NOT NULL,
   updated_at      INTEGER NOT NULL
 );
@@ -66,6 +67,16 @@ CREATE TABLE IF NOT EXISTS room_members (
   PRIMARY KEY (room_id, username)
 );
 `);
+
+// Migration: show_qr_when_idle was added after the initial rooms table
+// shipped, so existing databases (including production) need the column
+// added explicitly -- CREATE TABLE IF NOT EXISTS above is a no-op once the
+// table already exists. Defaults every existing room to showing the QR
+// (matches current behavior exactly, so this is a safe, non-breaking change).
+const roomColumns = db.prepare("PRAGMA table_info(rooms)").all();
+if (!roomColumns.some((col) => col.name === "show_qr_when_idle")) {
+  db.exec("ALTER TABLE rooms ADD COLUMN show_qr_when_idle INTEGER NOT NULL DEFAULT 1");
+}
 
 // Initialize default admin user if none exists
 const existingAdmin = db.prepare("SELECT * FROM users WHERE role = 'admin'").get();

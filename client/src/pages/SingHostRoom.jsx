@@ -194,6 +194,10 @@ export default function SingHostRoom() {
     }
   }
 
+  function handleToggleShowQr() {
+    socket.emit("set_show_qr_when_idle", { roomId, hostToken, show: !room.show_qr_when_idle });
+  }
+
   if (connError) {
     return (
       <>
@@ -267,6 +271,19 @@ export default function SingHostRoom() {
                     🗑 Delete
                   </button>
                 </div>
+
+                {room.type === "permanent" && (
+                  <div className="row" style={{ gap: 8, marginBottom: 16 }}>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={handleToggleShowQr}
+                      style={{ flex: 1 }}
+                      title="Controls whether the Host Display shows the join QR code / URL when idle (no song playing)"
+                    >
+                      {room.show_qr_when_idle ? "🔳 Hide idle QR code" : "🔳 Show idle QR code"}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Now Playing Box */}

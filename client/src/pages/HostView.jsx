@@ -280,12 +280,22 @@ export default function HostView() {
         </>
       ) : (
         <>
-          <p className="host-eyebrow">Scan · Search · Sing</p>
+          <p className="host-eyebrow">{room.show_qr_when_idle ? "Scan · Search · Sing" : "Sing!"}</p>
           <h1 className="display" style={{ fontSize: "2.6rem", color: "var(--text-on-dark)" }}>
-            {queue.length === 0 ? "No song queued — scan to pick one!" : "Get ready…"}
+            {room.show_qr_when_idle
+              ? queue.length === 0
+                ? "No song queued — scan to pick one!"
+                : "Get ready…"
+              : queue.length === 0
+                ? "No song queued"
+                : "Get ready…"}
           </h1>
-          <QRDisplay url={joinUrl} />
-          <p className="text-dim">{joinUrl}</p>
+          {room.show_qr_when_idle ? (
+            <>
+              <QRDisplay url={joinUrl} />
+              <p className="text-dim">{joinUrl}</p>
+            </>
+          ) : null}
         </>
       )}
 

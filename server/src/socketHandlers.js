@@ -1,4 +1,4 @@
-import { getRoom, verifyHost, pauseRoom, resumeRoom, endSessionRoom, deleteRoom } from "./rooms.js";
+import { getRoom, verifyHost, pauseRoom, resumeRoom, endSessionRoom, deleteRoom, setShowQrWhenIdle } from "./rooms.js";
 import {
   getFullState,
   addToQueue,
@@ -167,6 +167,29 @@ export function registerSocketHandlers(io) {
         return;
       }
       resumeRoom(roomId);
+      broadcastState(io, roomId);
+      ack?.({ ok: true });
+    });
+
+    // Host-only, permanent rooms only: whether the Host Display shows the
+    // join QR/URL while idle (no now-playing). Session rooms don't get this
+    // control -- always showing the QR is the only sane default for a
+    // one-off room whose entire purpose is guests joining it.
+    socket.on("set_show_qr_when_idle", ({ roomId, hostToken, show }, ack) => {
+      if (!verifyHost(roomId, hostToken)) {
+        ack?.({ ok: false, error: "Invalid host token." });
+        return;
+      }
+      const room = getRoom(roomId);
+      if (!room) {
+        ack?.({ ok: false, error: "Room not found." });
+        return;
+      }
+      if (room.type !== "permanent") {
+        ack?.({ ok: false, error: "Only permanent rooms can toggle the idle QR display." });
+        return;
+      }
+      setShowQrWhenIdle(roomId, show);
       broadcastState(io, roomId);
       ack?.({ ok: true });
     });

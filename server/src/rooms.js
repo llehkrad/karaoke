@@ -130,6 +130,21 @@ export function resumeRoom(id) {
   return getRoom(id);
 }
 
+// Permanent rooms only: whether the Host Display shows the join QR code /
+// URL while idle (no now-playing). Session (Quick Party) rooms always show
+// it -- a one-off room with no queue and no visible QR is a dead end for
+// guests, whereas a permanent room's owner may want the "no song, hide QR"
+// display when, say, a venue wants an ambient screen instead of a de facto
+// standing invitation to join.
+export function setShowQrWhenIdle(id, show) {
+  db.prepare("UPDATE rooms SET show_qr_when_idle = ?, updated_at = ? WHERE id = ?").run(
+    show ? 1 : 0,
+    now(),
+    id
+  );
+  return getRoom(id);
+}
+
 // Fully removes a room and its dependent rows. better-sqlite3 doesn't
 // enforce FK cascades unless "PRAGMA foreign_keys = ON" is set (it isn't
 // here), so queue_items/song_history are deleted explicitly rather than

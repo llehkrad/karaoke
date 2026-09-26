@@ -273,14 +273,17 @@ export default function SingHostRoom() {
                 </div>
 
                 {room.type === "permanent" && (
-                  <div className="row" style={{ gap: 8, marginBottom: 16 }}>
+                  <div className="switch-row" style={{ marginBottom: 16 }}>
+                    <span className="switch-label">Show idle QR code</span>
                     <button
-                      className="btn btn-secondary"
+                      type="button"
+                      role="switch"
+                      aria-checked={!!room.show_qr_when_idle}
+                      className="switch"
                       onClick={handleToggleShowQr}
-                      style={{ flex: 1 }}
                       title="Controls whether the Host Display shows the join QR code / URL when idle (no song playing)"
                     >
-                      {room.show_qr_when_idle ? "🔳 Hide idle QR code" : "🔳 Show idle QR code"}
+                      <span className="switch-knob" />
                     </button>
                   </div>
                 )}
